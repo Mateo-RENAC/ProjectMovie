@@ -94,7 +94,7 @@ namespace ProjectMovie.Controllers
 			return View(movie); // Charge la vue de confirmation de suppression avec les détails du film
 		}
 
-		[HttpPost]
+		[HttpPost,ActionName("Delete")]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteConfirmed(Guid id)
 		{
