@@ -48,6 +48,12 @@ namespace ProjectMovie.Controllers
 			return View(movie);
 		}
 
+		[HttpGet]
+		public async Task<IActionResult>Edit()
+		{
+			return View();
+		}
+
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] Movie movie)
