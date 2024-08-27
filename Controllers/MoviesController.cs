@@ -30,6 +30,12 @@ namespace ProjectMovie.Controllers
 			return View(movie);
 		}
 
+		[HttpGet]
+		public async Task<IActionResult> Add()
+		{
+			return View();
+		}
+
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Add([Bind("Id,Title,Description,Author")] Movie movie)
