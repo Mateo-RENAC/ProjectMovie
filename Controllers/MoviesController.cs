@@ -15,6 +15,7 @@ namespace ProjectMovie.Controllers
 			_movieService = movieService;
 		}
 
+		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
 			return View(await _movieService.GetAllMoviesAsync());
@@ -49,10 +50,18 @@ namespace ProjectMovie.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IActionResult>Edit()
+		public async Task<IActionResult> Edit(Guid? id)
 		{
-			return View();
+			if (id == null) return NotFound();
+
+			// Récupère le film par son ID en utilisant le service
+			var movie = await _movieService.GetMovieByIdAsync(id.Value);
+			if (movie == null) return NotFound();
+
+			// Retourne la vue avec les détails du film
+			return View(movie);
 		}
+
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
@@ -68,11 +77,28 @@ namespace ProjectMovie.Controllers
 			return View(movie);
 		}
 
+		[HttpGet]
+		public async Task<IActionResult> Delete(Guid? id)
+		{
+			if (id == null)
+			{
+				return NotFound();
+			}
+
+			var movie = await _movieService.GetMovieByIdAsync(id.Value);
+			if (movie == null)
+			{
+				return NotFound();
+			}
+
+			return View(movie); // Charge la vue de confirmation de suppression avec les détails du film
+		}
+
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> DeleteConfirmed(Guid id)
 		{
-			await _movieService.DeleteMovieAsync(id);
+			await _movieService.Delete(id);
 			return RedirectToAction(nameof(Index));
 		}
 	}

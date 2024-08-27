@@ -39,7 +39,7 @@ namespace ProjectMovie.Services
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task DeleteMovieAsync(Guid id)
+		public async Task Delete(Guid id)
 		{
 			var movie = await _context.Movie.FindAsync(id);
 			if (movie != null)

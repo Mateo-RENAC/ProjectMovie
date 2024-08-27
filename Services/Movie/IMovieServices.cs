@@ -11,6 +11,6 @@ namespace ProjectMovie.Services
 		Task<Movie> GetMovieByIdAsync(Guid id);
 		Task AddMovieAsync(Movie movie);
 		Task UpdateMovieAsync(Movie movie);
-		Task DeleteMovieAsync(Guid id);
+		Task Delete(Guid id);
 	}
 }
