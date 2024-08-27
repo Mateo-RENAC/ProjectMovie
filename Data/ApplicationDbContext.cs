@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ProjectMovie.Models.Entities;
 
 namespace ProjectMovie.Data
 {
@@ -9,5 +10,6 @@ namespace ProjectMovie.Data
 			: base(options)
 		{
 		}
+	    public DbSet<ProjectMovie.Models.Entities.Movie> Movie { get; set; } = default!;
 	}
 }
