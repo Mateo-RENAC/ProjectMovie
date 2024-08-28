@@ -13,7 +13,7 @@ namespace ProjectMovie.Models.Entities
 		public string? Description { get; set; }
 
 		public required string Author { get; set; }
-
+		public byte[]? Picture { get; set; }
 
 
 
