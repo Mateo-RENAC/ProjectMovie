@@ -9,11 +9,11 @@ using ProjectMovie.Data;
 
 #nullable disable
 
-namespace ProjectMovie.Data.Migrations
+namespace ProjectMovie.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240827133130_Tentative d'avoir une table Movie")]
-    partial class TentativedavoirunetableMovie
+    [Migration("20240828113816_Initial-Migration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

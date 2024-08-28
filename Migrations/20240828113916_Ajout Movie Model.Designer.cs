@@ -9,11 +9,11 @@ using ProjectMovie.Data;
 
 #nullable disable
 
-namespace ProjectMovie.Data.Migrations
+namespace ProjectMovie.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240827124739_Initial-Migration")]
-    partial class InitialMigration
+    [Migration("20240828113916_Ajout Movie Model")]
+    partial class AjoutMovieModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -225,6 +225,28 @@ namespace ProjectMovie.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("ProjectMovie.Models.Entities.Movie", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Movie");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
