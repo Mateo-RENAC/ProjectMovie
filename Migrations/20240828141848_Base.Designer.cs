@@ -12,8 +12,8 @@ using ProjectMovie.Data;
 namespace ProjectMovie.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240828113916_Ajout Movie Model")]
-    partial class AjoutMovieModel
+    [Migration("20240828141848_Base")]
+    partial class Base
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
