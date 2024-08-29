@@ -1,47 +1,41 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ProjectMovie.Models.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
 using ProjectMovie.Models.Views;
 using ProjectMovie.Services;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace ProjectMovie.Controllers
 {
-	public class MoviesController : Controller
-	{
+    public class MoviesController : Controller
+    {
         private readonly IMovieService _movieService;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public MoviesController(IMovieService movieService, IWebHostEnvironment webHostEnvironment)
+        public MoviesController(IMovieService movieService)
         {
             _movieService = movieService;
-            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
-		public async Task<IActionResult> Index()
-		{
-			return View(await _movieService.GetAllMoviesAsync());
-		}
+        public async Task<IActionResult> Index()
+        {
+            return View(await _movieService.GetAllMoviesAsync());
+        }
 
-		public async Task<IActionResult> Details(Guid? id)
-		{
-			if (id == null) return NotFound();
+        public async Task<IActionResult> Details(Guid? id)
+        {
+            if (id == null) return NotFound();
 
-			var movie = await _movieService.GetMovieByIdAsync(id.Value);
-			if (movie == null) return NotFound();
+            var movie = await _movieService.GetMovieByIdAsync(id.Value);
+            if (movie == null) return NotFound();
 
-			return View(movie);
-		}
+            return View(movie);
+        }
 
-		[HttpGet]
-		public async Task<IActionResult> Add()
-		{
-			return View();
-		}
+        [HttpGet]
+        public IActionResult Add()
+        {
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -49,30 +43,12 @@ namespace ProjectMovie.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await _movieService.AddMovieAsync(movieViewModel);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _movieService.MovieExistsAsync(movieViewModel.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _movieService.AddMovieAsync(movieViewModel);
                 return RedirectToAction(nameof(Index));
             }
 
-            // If the ModelState is invalid, return the view with the current model to display errors
             return View(movieViewModel);
         }
-
-
-
 
         [HttpGet]
         public async Task<IActionResult> Edit(Guid? id)
@@ -82,19 +58,16 @@ namespace ProjectMovie.Controllers
             var movie = await _movieService.GetMovieByIdAsync(id.Value);
             if (movie == null) return NotFound();
 
-            // Convertir Movie en MovieViewModel
             var movieViewModel = new MovieViewModel
             {
                 Id = movie.Id,
                 Title = movie.Title,
                 Description = movie.Description,
                 Author = movie.Author,
-                // PathPicture est géré dans la vue pour l'affichage
             };
 
             return View(movieViewModel);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -104,85 +77,30 @@ namespace ProjectMovie.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    // Récupération de l'entité Movie depuis le service
-                    var movie = await _movieService.GetMovieByIdAsync(id);
-                    if (movie == null) return NotFound();
-
-                    // Mise à jour des propriétés de Movie
-                    movie.Title = movieViewModel.Title;
-                    movie.Description = movieViewModel.Description;
-                    movie.Author = movieViewModel.Author;
-
-                    // Traitement de l'image
-                    if (movieViewModel.Picture != null && movieViewModel.Picture.Length > 0)
-                    {
-                        var fileName = Path.GetFileName(movieViewModel.Picture.FileName);
-                        var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", fileName);
-
-                        // Enregistrement du fichier
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await movieViewModel.Picture.CopyToAsync(stream);
-                        }
-
-                        // Mise à jour du chemin de l'image dans Movie
-                        movie.PathPicture = $"/images/{fileName}";
-                    }
-
-                    await _movieService.UpdateMovieAsync(movieViewModel);
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await _movieService.MovieExistsAsync(movieViewModel.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _movieService.UpdateMovieAsync(movieViewModel);
+                return RedirectToAction(nameof(Index));
             }
 
-            // Si ModelState n'est pas valide, renvoyez la vue avec le modèle actuel
             return View(movieViewModel);
         }
 
-
-
-
-
-
-
-
-
-
         [HttpGet]
-		public async Task<IActionResult> Delete(Guid? id)
-		{
-			if (id == null)
-			{
-				return NotFound();
-			}
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null) return NotFound();
 
-			var movie = await _movieService.GetMovieByIdAsync(id.Value);
-			if (movie == null)
-			{
-				return NotFound();
-			}
+            var movie = await _movieService.GetMovieByIdAsync(id.Value);
+            if (movie == null) return NotFound();
 
-			return View(movie); // Charge la vue de confirmation de suppression avec les détails du film
-		}
+            return View(movie);
+        }
 
-		[HttpPost,ActionName("Delete")]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteConfirmed(Guid id)
-		{
-			await _movieService.Delete(id);
-			return RedirectToAction(nameof(Index));
-		}
-	}
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            await _movieService.Delete(id);
+            return RedirectToAction(nameof(Index));
+        }
+    }
 }

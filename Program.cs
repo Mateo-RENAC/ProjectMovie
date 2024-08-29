@@ -19,6 +19,9 @@ builder.Services.AddControllersWithViews();
 // Registering the MovieService with its interface
 builder.Services.AddScoped<IMovieService, MovieService>();
 
+// Registering the IFileService with its interface
+builder.Services.AddScoped<IFileService, FileService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
