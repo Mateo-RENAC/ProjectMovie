@@ -88,16 +88,18 @@ namespace ProjectMovie.Controllers
                 Id = movie.Id,
                 Title = movie.Title,
                 Description = movie.Description,
-                Author = movie.Author
+                Author = movie.Author,
+                // Ne pas inclure le chemin de l'image ici
             };
 
             return View(movieViewModel);
         }
 
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] MovieViewModel movieViewModel)
+        public async Task<IActionResult> Edit(Guid id, MovieViewModel movieViewModel)
         {
             if (id != movieViewModel.Id) return NotFound();
 
@@ -105,7 +107,31 @@ namespace ProjectMovie.Controllers
             {
                 try
                 {
-                    await _movieService.UpdateMovieAsync(movieViewModel);
+                    var movie = await _movieService.GetMovieByIdAsync(id);
+                    if (movie == null) return NotFound();
+
+                    // Mise à jour des propriétés du film
+                    movie.Title = movieViewModel.Title;
+                    movie.Description = movieViewModel.Description;
+                    movie.Author = movieViewModel.Author;
+
+                    // Traitement de l'image
+                    if (movieViewModel.Picture != null && movieViewModel.Picture.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(movieViewModel.Picture.FileName);
+                        var filePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", fileName);
+
+                        // Enregistrement du fichier
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await movieViewModel.Picture.CopyToAsync(stream);
+                        }
+
+                        // Mise à jour du chemin de l'image
+                        movie.PathPicture = $"/images/{fileName}";
+                    }
+
+                    await _movieService.UpdateMovieAsync(movie);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -123,6 +149,11 @@ namespace ProjectMovie.Controllers
 
             return View(movieViewModel);
         }
+
+
+
+
+
 
         [HttpGet]
 		public async Task<IActionResult> Delete(Guid? id)
