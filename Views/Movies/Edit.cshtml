@@ -1,4 +1,4 @@
-﻿@model ProjectMovie.Models.Entities.MovieViewModel
+﻿@model ProjectMovie.Models.Views.MovieViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -32,14 +32,7 @@
             <!-- Afficher l'image actuelle -->
             <div class="form-group">
                 <label>Current Picture</label><br />
-                @if (!string.IsNullOrEmpty(Model.PathPicture))
-                {
-                    <img src="@Model.PathPicture" alt="Current Picture" style="max-width: 200px; max-height: 200px;" />
-                }
-                else
-                {
-                    <p>No picture available</p>
-                }
+                    <img src="@Model.Picture" alt="Current Picture" style="max-width: 200px; max-height: 200px;" />   
             </div>
 
             <!-- Champ pour télécharger une nouvelle image -->

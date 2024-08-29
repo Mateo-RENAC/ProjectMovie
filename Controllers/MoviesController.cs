@@ -45,7 +45,7 @@ namespace ProjectMovie.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MovieViewModel movieViewModel)
+        public async Task<IActionResult> Add(MovieViewModel movieViewModel)
         {
             if (ModelState.IsValid)
             {
