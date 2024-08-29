@@ -89,12 +89,11 @@ namespace ProjectMovie.Controllers
                 Title = movie.Title,
                 Description = movie.Description,
                 Author = movie.Author,
-                // Ne pas inclure le chemin de l'image ici
+                // PathPicture est géré dans la vue pour l'affichage
             };
 
             return View(movieViewModel);
         }
-
 
 
         [HttpPost]
@@ -107,10 +106,11 @@ namespace ProjectMovie.Controllers
             {
                 try
                 {
+                    // Récupération de l'entité Movie depuis le service
                     var movie = await _movieService.GetMovieByIdAsync(id);
                     if (movie == null) return NotFound();
 
-                    // Mise à jour des propriétés du film
+                    // Mise à jour des propriétés de Movie
                     movie.Title = movieViewModel.Title;
                     movie.Description = movieViewModel.Description;
                     movie.Author = movieViewModel.Author;
@@ -127,11 +127,12 @@ namespace ProjectMovie.Controllers
                             await movieViewModel.Picture.CopyToAsync(stream);
                         }
 
-                        // Mise à jour du chemin de l'image
+                        // Mise à jour du chemin de l'image dans Movie
                         movie.PathPicture = $"/images/{fileName}";
                     }
 
-                    await _movieService.UpdateMovieAsync(movie);
+                    await _movieService.UpdateMovieAsync(movieViewModel);
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -144,11 +145,15 @@ namespace ProjectMovie.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
 
+            // Si ModelState n'est pas valide, renvoyez la vue avec le modèle actuel
             return View(movieViewModel);
         }
+
+
+
+
 
 
 
