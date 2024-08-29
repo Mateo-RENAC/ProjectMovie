@@ -75,34 +75,56 @@ namespace ProjectMovie.Controllers
 
 
         [HttpGet]
-		public async Task<IActionResult> Edit(Guid? id)
-		{
-			if (id == null) return NotFound();
+        public async Task<IActionResult> Edit(Guid? id)
+        {
+            if (id == null) return NotFound();
 
-			// Récupère le film par son ID en utilisant le service
-			var movie = await _movieService.GetMovieByIdAsync(id.Value);
-			if (movie == null) return NotFound();
+            var movie = await _movieService.GetMovieByIdAsync(id.Value);
+            if (movie == null) return NotFound();
 
-			// Retourne la vue avec les détails du film
-			return View(movie);
-		}
+            // Convertir Movie en MovieViewModel
+            var movieViewModel = new MovieViewModel
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Description = movie.Description,
+                Author = movie.Author
+            };
+
+            return View(movieViewModel);
+        }
 
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] MovieViewModel movie)
-		{
-			if (id != movie.Id) return NotFound();
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] MovieViewModel movieViewModel)
+        {
+            if (id != movieViewModel.Id) return NotFound();
 
-			if (ModelState.IsValid)
-			{
-				await _movieService.UpdateMovieAsync(movie);
-				return RedirectToAction(nameof(Index));
-			}
-			return View(movie);
-		}
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _movieService.UpdateMovieAsync(movieViewModel);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await _movieService.MovieExistsAsync(movieViewModel.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
 
-		[HttpGet]
+            return View(movieViewModel);
+        }
+
+        [HttpGet]
 		public async Task<IActionResult> Delete(Guid? id)
 		{
 			if (id == null)
