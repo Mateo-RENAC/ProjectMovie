@@ -1,21 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProjectMovie.Models.Entities;
 using ProjectMovie.Services;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ProjectMovie.Controllers
 {
 	public class MoviesController : Controller
 	{
-		private readonly IMovieService _movieService;
+        private readonly IMovieService _movieService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-		public MoviesController(IMovieService movieService)
-		{
-			_movieService = movieService;
-		}
+        public MoviesController(IMovieService movieService, IWebHostEnvironment webHostEnvironment)
+        {
+            _movieService = movieService;
+            _webHostEnvironment = webHostEnvironment;
+        }
 
-		[HttpGet]
+        [HttpGet]
 		public async Task<IActionResult> Index()
 		{
 			return View(await _movieService.GetAllMoviesAsync());
@@ -37,19 +42,48 @@ namespace ProjectMovie.Controllers
 			return View();
 		}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Add([Bind("Id,Title,Description,Author")] Movie movie)
-		{
-			if (ModelState.IsValid)
-			{
-				await _movieService.AddMovieAsync(movie);
-				return RedirectToAction(nameof(Index));
-			}
-			return View(movie);
-		}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Add([Bind("Id,Title,Description,Author")] Movie movie, IFormFile Picture)
+        {
+            if (ModelState.IsValid)
+            {
+                if (Picture != null && Picture.Length > 0)
+                {
+                    // Assure que le dossier où les images seront stockées existe
+                    var imagesPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
+                    if (!Directory.Exists(imagesPath))
+                    {
+                        Directory.CreateDirectory(imagesPath);
+                    }
 
-		[HttpGet]
+                    // Génération d'un nom de fichier unique pour éviter les conflits
+                    var fileName = Path.GetFileNameWithoutExtension(Picture.FileName);
+                    var fileExtension = Path.GetExtension(Picture.FileName);
+                    var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{fileExtension}";
+                    var filePath = Path.Combine(imagesPath, uniqueFileName);
+
+                    // Sauvegarde du fichier
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await Picture.CopyToAsync(stream);
+                    }
+
+                    // Mise à jour du chemin de l'image dans le modèle
+                    movie.PathPicture = "/images/" + uniqueFileName;
+                }
+
+                // Ajout du film à la base de données via ton service MovieService
+                await _movieService.AddMovieAsync(movie);
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(movie);
+        }
+
+
+
+        [HttpGet]
 		public async Task<IActionResult> Edit(Guid? id)
 		{
 			if (id == null) return NotFound();

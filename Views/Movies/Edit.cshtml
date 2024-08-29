@@ -28,6 +28,27 @@
                 <input asp-for="Author" class="form-control" />
                 <span asp-validation-for="Author" class="text-danger"></span>
             </div>
+
+            <!-- Afficher l'image actuelle -->
+            <div class="form-group">
+                <label>Current Picture</label><br />
+                @if (!string.IsNullOrEmpty(Model.PathPicture))
+                {
+                    <img src="@Model.PathPicture" alt="Current Picture" style="max-width: 200px; max-height: 200px;" />
+                }
+                else
+                {
+                    <p>No picture available</p>
+                }
+            </div>
+
+            <!-- Champ pour télécharger une nouvelle image -->
+            <div class="form-group">
+                <label for="Picture">Upload New Picture</label>
+                <input type="file" class="form-control" name="Picture" id="Picture" />
+            </div>
+
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
