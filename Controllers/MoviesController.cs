@@ -50,6 +50,16 @@ namespace ProjectMovie.Controllers
             {
                 if (Picture != null && Picture.Length > 0)
                 {
+                    // Vérification du type MIME de l'image
+                    var permittedExtensions = new[] { ".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tiff", ".webp" };
+                    var extension = Path.GetExtension(Picture.FileName).ToLowerInvariant();
+
+                    if (string.IsNullOrEmpty(extension) || !permittedExtensions.Contains(extension))
+                    {
+                        ModelState.AddModelError("Picture", "Invalid file type. Only JPEG, PNG, GIF, BMP, TIFF, and WebP are allowed.");
+                        return View(movie);
+                    }
+
                     // Assure que le dossier où les images seront stockées existe
                     var imagesPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
                     if (!Directory.Exists(imagesPath))
@@ -73,13 +83,14 @@ namespace ProjectMovie.Controllers
                     movie.PathPicture = "/images/" + uniqueFileName;
                 }
 
-                // Ajout du film à la base de données via ton service MovieService
+                // Ajout du film à la base de données
                 await _movieService.AddMovieAsync(movie);
                 return RedirectToAction(nameof(Index));
             }
 
             return View(movie);
         }
+
 
 
 
