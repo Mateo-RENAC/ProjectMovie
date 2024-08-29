@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectMovie.Models.Entities;
+using ProjectMovie.Models.Views;
 using ProjectMovie.Services;
 using System;
 using System.IO;
@@ -44,51 +45,30 @@ namespace ProjectMovie.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add([Bind("Id,Title,Description,Author")] Movie movie, IFormFile Picture)
+        public async Task<IActionResult> Create(MovieViewModel movieViewModel)
         {
             if (ModelState.IsValid)
             {
-                if (Picture != null && Picture.Length > 0)
+                try
                 {
-                    // Vérification du type MIME de l'image
-                    var permittedExtensions = new[] { ".jpeg", ".jpg", ".png", ".gif", ".bmp", ".tiff", ".webp" };
-                    var extension = Path.GetExtension(Picture.FileName).ToLowerInvariant();
-
-                    if (string.IsNullOrEmpty(extension) || !permittedExtensions.Contains(extension))
-                    {
-                        ModelState.AddModelError("Picture", "Invalid file type. Only JPEG, PNG, GIF, BMP, TIFF, and WebP are allowed.");
-                        return View(movie);
-                    }
-
-                    // Assure que le dossier où les images seront stockées existe
-                    var imagesPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-                    if (!Directory.Exists(imagesPath))
-                    {
-                        Directory.CreateDirectory(imagesPath);
-                    }
-
-                    // Génération d'un nom de fichier unique pour éviter les conflits
-                    var fileName = Path.GetFileNameWithoutExtension(Picture.FileName);
-                    var fileExtension = Path.GetExtension(Picture.FileName);
-                    var uniqueFileName = $"{fileName}_{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(imagesPath, uniqueFileName);
-
-                    // Sauvegarde du fichier
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await Picture.CopyToAsync(stream);
-                    }
-
-                    // Mise à jour du chemin de l'image dans le modèle
-                    movie.PathPicture = "/images/" + uniqueFileName;
+                    await _movieService.AddMovieAsync(movieViewModel);
                 }
-
-                // Ajout du film à la base de données
-                await _movieService.AddMovieAsync(movie);
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await _movieService.MovieExistsAsync(movieViewModel.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(movie);
+            // If the ModelState is invalid, return the view with the current model to display errors
+            return View(movieViewModel);
         }
 
 
@@ -110,7 +90,7 @@ namespace ProjectMovie.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] Movie movie)
+		public async Task<IActionResult> Edit(Guid id, [Bind("Id,Title,Description,Author")] MovieViewModel movie)
 		{
 			if (id != movie.Id) return NotFound();
 
